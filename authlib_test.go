@@ -11,7 +11,7 @@ func testConfig() Config {
 	return Config{
 		AccessSecret:  []byte("access-secret-de-prueba"),
 		RefreshSecret: []byte("refresh-secret-de-prueba"),
-		AccessTTL:     300 * time.Millisecond,
+		AccessTTL:     2 * time.Second,
 		RefreshTTL:    time.Hour,
 	}
 }
@@ -60,7 +60,7 @@ func TestGenerateAndParseToken(t *testing.T) {
 		t.Fatalf("claims inesperados: %+v", claims)
 	}
 
-	time.Sleep(350 * time.Millisecond)
+	time.Sleep(2500 * time.Millisecond)
 	if _, err := ParseToken(cfg, token); err != ErrExpiredToken {
 		t.Fatalf("esperaba ErrExpiredToken, obtuve %v", err)
 	}
@@ -100,7 +100,7 @@ func TestMiddlewareRenewsAccessTokenWithValidRefreshToken(t *testing.T) {
 	access, _ := GenerateToken(cfg, user)
 	refresh, _ := GenerateRefreshToken(cfg, user, refreshStore)
 
-	time.Sleep(350 * time.Millisecond) // dejamos que el access token expire
+	time.Sleep(2500 * time.Millisecond) // dejamos que el access token expire
 
 	handler := Middleware(cfg, userStore, refreshStore)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		claims, ok := ClaimsFromContext(r.Context())
