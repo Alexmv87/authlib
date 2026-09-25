@@ -3,6 +3,7 @@ package authlib
 import (
 	"context"
 	"net/http"
+	"time"
 )
 
 type contextKey string
@@ -71,6 +72,33 @@ func Middleware(cfg Config, userStore UserStore, refreshStore RefreshStore) func
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// setRefreshCookie escribe el refresh token como cookie httpOnly.
+func SetRefreshCookie(w http.ResponseWriter, value string, ttl time.Duration) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    value,
+		Path:     "/", // ajusta si quieres limitarlo a un endpoint, p. ej. "/api/auth/refresh"
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(ttl),
+	})
+}
+
+// clearRefreshCookie invalida la cookie del refresh token (p. ej. cuando es inválido o en logout).
+func ClearRefreshCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+	})
 }
 
 // bearerToken extrae el token del header "Authorization: Bearer <token>".
