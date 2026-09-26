@@ -39,13 +39,13 @@ func Middleware(cfg Config, userStore UserStore, refreshStore RefreshStore) func
 				}
 
 				// El access token expiró: intentamos renovar con el refresh token.
-				refreshRaw := r.Header.Get("X-Refresh-Token")
-				if refreshRaw == "" {
+				refreshRaw, err := r.Cookie("refresh_token")
+				if err != nil || refreshRaw.Value == "" {
 					http.Error(w, "token expirado", http.StatusUnauthorized)
 					return
 				}
 
-				refreshClaims, err := ParseRefreshToken(cfg, refreshRaw, refreshStore)
+				refreshClaims, err := ParseRefreshToken(cfg, refreshRaw.Value, refreshStore)
 				if err != nil {
 					http.Error(w, "refresh token inválido o expirado", http.StatusUnauthorized)
 					return
